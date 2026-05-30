@@ -2,13 +2,12 @@ using SPICA.Formats.CtrH3D;
 using SPICA.Formats.CtrH3D.Texture;
 using SPICA.PICA.Commands;
 using System.Collections.Generic;
-using System.IO;
 
 namespace BCH.TextureCore
 {
     /// <summary>
     /// Holds an open BCH scene and exposes all texture operations as byte[]-based methods.
-    /// Neither UI nor System.Windows.Forms is referenced here.
+    /// No System.Drawing or System.Windows.Forms dependency.
     /// </summary>
     public class TextureSession
     {
@@ -37,29 +36,25 @@ namespace BCH.TextureCore
         // ── Preview ────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Returns (rgbPng, alphaPng) for display. Both are PNG bytes.
-        /// alphaPng is a grayscale image; empty byte[] when no alpha channel.
+        /// Returns (rgbPng, alphaPng, width, height) for display.
+        /// Both are PNG bytes. Uses ImageSharp — no System.Drawing.
         /// </summary>
         public (byte[] rgb, byte[] alpha, int width, int height) GetPreview(int index)
         {
-            using var bmp = Scene.Textures[index].ToBitmap();
-            byte[] fullPng = ImageHelpers.BitmapToPng(bmp);
+            var tex = Scene.Textures[index];
+            byte[] fullPng = Rgba8ToPng(tex);
             var (rgb, alpha) = ImageHelpers.SplitAlpha(fullPng);
-            return (rgb, alpha, bmp.Width, bmp.Height);
+            return (rgb, alpha, tex.Width, tex.Height);
         }
 
         // ── Export ─────────────────────────────────────────────────────────────
 
         public byte[] ExportTexturePng(int index)
-        {
-            using var bmp = Scene.Textures[index].ToBitmap();
-            return ImageHelpers.BitmapToPng(bmp);
-        }
+            => Rgba8ToPng(Scene.Textures[index]);
 
         public (byte[] rgb, byte[] alpha) ExportTextureSplit(int index)
         {
-            using var bmp = Scene.Textures[index].ToBitmap();
-            byte[] fullPng = ImageHelpers.BitmapToPng(bmp);
+            byte[] fullPng = Rgba8ToPng(Scene.Textures[index]);
             return ImageHelpers.SplitAlpha(fullPng);
         }
 
@@ -69,10 +64,7 @@ namespace BCH.TextureCore
         {
             name = Sanitize(name);
             name = Deduplicate(name);
-
-            using var bmp = ImageHelpers.PngToBitmap(pngBytes);
-            var texture = new H3DTexture(name, bmp, PICATextureFormat.RGBA8);
-            Scene.Textures.Add(texture);
+            Scene.Textures.Add(BuildTexture(name, pngBytes));
             return name;
         }
 
@@ -80,39 +72,49 @@ namespace BCH.TextureCore
         {
             name = Sanitize(name);
             name = Deduplicate(name);
-
             byte[] merged = ImageHelpers.MergeAlpha(rgbPng, alphaPng);
-            using var bmp = ImageHelpers.PngToBitmap(merged);
-            var texture = new H3DTexture(name, bmp, PICATextureFormat.RGBA8);
-            Scene.Textures.Add(texture);
+            Scene.Textures.Add(BuildTexture(name, merged));
             return name;
         }
 
         public void ReplaceTexture(int index, byte[] pngBytes)
         {
-            using var bmp = ImageHelpers.PngToBitmap(pngBytes);
-            var replacement = new H3DTexture(Scene.Textures[index].Name, bmp, PICATextureFormat.RGBA8);
+            var replacement = BuildTexture(Scene.Textures[index].Name, pngBytes);
             Scene.Textures[index].ReplaceData(replacement);
         }
 
         // ── Manage ─────────────────────────────────────────────────────────────
 
         public void RemoveTexture(int index)
-        {
-            Scene.Textures.Remove(Scene.Textures[index]);
-        }
+            => Scene.Textures.Remove(Scene.Textures[index]);
 
         public string RenameTexture(int index, string newName)
         {
             newName = Sanitize(newName);
             if (string.IsNullOrEmpty(newName)) return Scene.Textures[index].Name;
-
             newName = Deduplicate(newName, excludeIndex: index);
             Scene.Textures[index].Name = newName;
             return newName;
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
+
+        private static byte[] Rgba8ToPng(H3DTexture tex)
+            => ImageHelpers.Rgba8ToPng(tex.RawBuffer, tex.Width, tex.Height);
+
+        private static H3DTexture BuildTexture(string name, byte[] pngBytes)
+        {
+            var (rawBuffer, w, h) = ImageHelpers.PngToRgba8(pngBytes);
+            return new H3DTexture
+            {
+                Name       = name,
+                Format     = PICATextureFormat.RGBA8,
+                MipmapSize = 1,
+                Width      = w,
+                Height     = h,
+                RawBuffer  = rawBuffer
+            };
+        }
 
         private static string Sanitize(string name) => name.Replace(" ", "");
 
@@ -127,7 +129,7 @@ namespace BCH.TextureCore
                 {
                     i++;
                     name = $"{baseName}_{i}";
-                    t = -1; // restart scan
+                    t = -1;
                 }
             }
             return name;
