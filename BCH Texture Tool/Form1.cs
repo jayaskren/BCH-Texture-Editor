@@ -178,24 +178,20 @@ namespace BCH_Texture_Tool
             Reset();
             treeView1.Nodes.Clear();
             Scene = new H3D();
-            FEArc arc = new FEArc();
-
-            using (MemoryStream ms = new MemoryStream(File.ReadAllBytes(infile)))
-            {
-                BinaryStream bs = new BinaryStream(ms);
-                arc.Read(bs);
-            }
+            byte[] bch = File.ReadAllBytes(infile);
+            List<byte[]> compressedfiles = FE3D.FEArc.ExtractArcToMemory(bch);
+            string[] names = FE3D.FEArc.ExtractArcNames(bch);
             int i = 0;
 
-            foreach (byte[] file in arc.Files)
+            foreach (byte[] file in compressedfiles)
             {
-                byte[] bch = FEIO.LZ11Decompress(file.Skip(4).ToArray());
+                bch = FEIO.LZ11Decompress(file.Skip(4).ToArray());
 
                 if (FEIO.GetMagic(bch) != "BCH")
                     continue;
 
                 H3D NewBch = H3D.Open(bch);
-                NewBch.Textures[0].Name = arc.FileNames[i].Replace(".bch.lz","");
+                NewBch.Textures[0].Name = names[i].Replace(".bch.lz","");
 
                 Scene.Textures.Add(NewBch.Textures[0]);
                 i++;
@@ -237,16 +233,8 @@ namespace BCH_Texture_Tool
                 names.Add(filename);
             }
 
-            using (FileStream fs = new FileStream(outname, FileMode.Create))
-            {
-                BinaryStream bs = new BinaryStream(fs);
-                FEArc arc = new FEArc();
-
-                arc.Files = arcfiles;
-                arc.FileNames = names;
-
-                arc.Write(bs);
-            }
+            byte[] arcfile = FE3D.FEArc.CreatArcFromMemory(arcfiles, names.ToArray());
+            File.WriteAllBytes(outname, arcfile);
         }
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
