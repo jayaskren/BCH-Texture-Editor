@@ -72,15 +72,6 @@ dotnet run --project BCH.TextureTool.Avalonia
 
 The window will open on your desktop. First launch takes ~10 seconds while it compiles; subsequent runs are faster.
 
-### Unzipping the sample files
-
-The `files/` folder in the repo contains `Arc File Samples.zip` with the sample `.arc` files from the modding tutorial. Unzip before use:
-
-```bash
-cd files
-unzip "Arc File Samples.zip"
-```
-
 ---
 
 ## Usage

@@ -7,6 +7,11 @@ obj/
 *.snupkg
 project.nuget.cache
 
+# Local test files
+files/
+logs.txt
+TESTING_WITH_WINE.md
+
 # OS
 .DS_Store
 Thumbs.db
