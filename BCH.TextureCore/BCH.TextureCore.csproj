@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>BCH.TextureCore</AssemblyName>
+    <RootNamespace>BCH.TextureCore</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FE3D">
+      <HintPath>..\libs\FE3D.dll</HintPath>
+    </Reference>
+    <Reference Include="FE3D.Graphics">
+      <HintPath>..\libs\FE3D.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors">
+      <HintPath>..\libs\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

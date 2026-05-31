@@ -1,0 +1,37 @@
+diff --git a/FE3D.Graphics/SPICA/Serialization/BinaryDeserializer.cs b/FE3D.Graphics/SPICA/Serialization/BinaryDeserializer.cs
+index 5c8e256..05032a5 100644
+--- a/FE3D.Graphics/SPICA/Serialization/BinaryDeserializer.cs
++++ b/FE3D.Graphics/SPICA/Serialization/BinaryDeserializer.cs
+@@ -185,14 +185,11 @@ namespace SPICA.Serialization
+ 
+         private string ReadString()
+         {
+-            StringBuilder SB = new StringBuilder();
+-
+-            for (char Chr; (Chr = Reader.ReadChar()) != '\0';)
+-            {
+-                SB.Append(Chr);
+-            }
+-
+-            return SB.ToString();
++            var bytes = new System.Collections.Generic.List<byte>();
++            byte b;
++            while ((b = Reader.ReadByte()) != 0)
++                bytes.Add(b);
++            return System.Text.Encoding.GetEncoding(932).GetString(bytes.ToArray());
+         }
+ 
+         private object ReadObject(Type ObjectType, bool IsRef = false)
+diff --git a/FE3D.Graphics/SPICA/Serialization/BinarySerializer.cs b/FE3D.Graphics/SPICA/Serialization/BinarySerializer.cs
+index bcc9b10..2ecb15a 100644
+--- a/FE3D.Graphics/SPICA/Serialization/BinarySerializer.cs
++++ b/FE3D.Graphics/SPICA/Serialization/BinarySerializer.cs
+@@ -158,7 +158,7 @@ namespace SPICA.Serialization
+             }
+             else if (Value is string)
+             {
+-                Writer.Write(Encoding.ASCII.GetBytes((string)Value + '\0'));
++                Writer.Write(Encoding.GetEncoding(932).GetBytes((string)Value + '\0'));
+             }
+             else if (Value is Vector2)
+             {

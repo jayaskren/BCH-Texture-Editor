@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="BCH.TextureTool.Avalonia.MainWindow"
+        Title="BCH Texture Tool"
+        MinWidth="500" MinHeight="300"
+        Width="780" Height="450">
+
+  <DockPanel>
+
+    <!-- Menu bar -->
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="Open"       Click="Open_Click"/>
+      <MenuItem Header="New"        Click="New_Click"/>
+      <MenuItem Header="Save"       x:Name="SaveMenu"      IsEnabled="False" Click="Save_Click"/>
+      <MenuItem Header="Export All" x:Name="ExportAllMenu" IsEnabled="False" Click="ExportAll_Click"/>
+    </Menu>
+
+    <!-- Button bar -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="2,2">
+      <Button x:Name="BtnImport"      Content="Import"       IsEnabled="False" Click="Import_Click"      Margin="2"/>
+      <Button x:Name="BtnImportSplit" Content="Import Split" IsEnabled="False" Click="ImportSplit_Click" Margin="2"/>
+      <Button x:Name="BtnReplace"     Content="Replace"      IsEnabled="False" Click="Replace_Click"     Margin="2"/>
+      <Button x:Name="BtnRemove"      Content="Remove"       IsEnabled="False" Click="Remove_Click"      Margin="2"/>
+      <Button x:Name="BtnRename"      Content="Rename"       IsEnabled="False" Click="Rename_Click"      Margin="2"/>
+      <Button x:Name="BtnExport"      Content="Export"       IsEnabled="False" Click="Export_Click"      Margin="2"/>
+      <Button x:Name="BtnExportSplit" Content="Export Split" IsEnabled="False" Click="ExportSplit_Click" Margin="2"/>
+    </StackPanel>
+
+    <!-- Filename label -->
+    <TextBlock x:Name="FileNameLabel" DockPanel.Dock="Top"
+               Margin="6,2" FontSize="11" Foreground="Gray"/>
+
+    <!-- Main content: list + preview -->
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="150" MinWidth="80"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Texture list -->
+      <ListBox Grid.Column="0"
+               x:Name="TextureList"
+               SelectionChanged="TextureList_SelectionChanged"
+               Margin="2"/>
+
+      <!-- Preview area -->
+      <Grid Grid.Column="1" Margin="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Selected texture name as header -->
+        <TextBlock Grid.Row="0" x:Name="TextureNameLabel"
+                   FontWeight="Bold" Margin="4,2" FontSize="12"/>
+
+        <!-- RGB + Alpha side by side, scrollable for large textures -->
+        <ScrollViewer Grid.Row="1"
+                      HorizontalScrollBarVisibility="Auto"
+                      VerticalScrollBarVisibility="Auto">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
+            <Border BorderBrush="#888" BorderThickness="1" Margin="2" Background="#222">
+              <Image x:Name="RgbPreview" Stretch="None"/>
+            </Border>
+            <Border BorderBrush="#888" BorderThickness="1" Margin="2" Background="#222">
+              <Image x:Name="AlphaPreview" Stretch="None"/>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </Grid>
+
+  </DockPanel>
+</Window>

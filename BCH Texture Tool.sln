@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.31112.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BCH Texture Tool", "BCH Texture Tool\BCH Texture Tool.csproj", "{B71DBCA5-62E8-47BF-AC3B-1F95AA71F516}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BCH.TextureCore", "BCH.TextureCore\BCH.TextureCore.csproj", "{7C68E566-2795-45F7-8E50-44C87A54647E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BCH.TextureTool.Avalonia", "BCH.TextureTool.Avalonia\BCH.TextureTool.Avalonia.csproj", "{8676C2CD-AAE3-4A24-B7C7-F74248706437}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{B71DBCA5-62E8-47BF-AC3B-1F95AA71F516}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B71DBCA5-62E8-47BF-AC3B-1F95AA71F516}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B71DBCA5-62E8-47BF-AC3B-1F95AA71F516}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C68E566-2795-45F7-8E50-44C87A54647E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C68E566-2795-45F7-8E50-44C87A54647E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C68E566-2795-45F7-8E50-44C87A54647E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C68E566-2795-45F7-8E50-44C87A54647E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8676C2CD-AAE3-4A24-B7C7-F74248706437}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8676C2CD-AAE3-4A24-B7C7-F74248706437}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8676C2CD-AAE3-4A24-B7C7-F74248706437}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8676C2CD-AAE3-4A24-B7C7-F74248706437}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

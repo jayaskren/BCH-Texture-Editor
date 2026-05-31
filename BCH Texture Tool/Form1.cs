@@ -179,8 +179,8 @@ namespace BCH_Texture_Tool
             treeView1.Nodes.Clear();
             Scene = new H3D();
             byte[] bch = File.ReadAllBytes(infile);
-            List<byte[]> compressedfiles = FE3D.FEArc.ExtractArcToMemory(bch);
-            string[] names = FE3D.FEArc.ExtractArcNames(bch);
+            List<byte[]> compressedfiles = FEArcOld.ExtractArcToMemory(bch);
+            string[] names = FEArcOld.ExtractArcNames(bch);
             int i = 0;
 
             foreach (byte[] file in compressedfiles)
@@ -191,7 +191,7 @@ namespace BCH_Texture_Tool
                     continue;
 
                 H3D NewBch = H3D.Open(bch);
-                NewBch.Textures[0].Name = names[i].Replace(".bch.lz","");
+                NewBch.Textures[0].Name = names[i].Replace(".bch.lz", "");
 
                 Scene.Textures.Add(NewBch.Textures[0]);
                 i++;
@@ -233,7 +233,7 @@ namespace BCH_Texture_Tool
                 names.Add(filename);
             }
 
-            byte[] arcfile = FE3D.FEArc.CreatArcFromMemory(arcfiles, names.ToArray());
+            byte[] arcfile = FEArcOld.CreateArc(arcfiles, names.ToArray());
             File.WriteAllBytes(outname, arcfile);
         }
 

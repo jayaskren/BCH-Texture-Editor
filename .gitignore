@@ -1,0 +1,26 @@
+# Build output
+bin/
+obj/
+
+# NuGet
+*.nupkg
+*.snupkg
+project.nuget.cache
+
+# Local test files
+files/
+logs.txt
+TESTING_WITH_WINE.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vs/
+*.user
+*.suo
+.idea/
+*.swp
+
+/home/jayaskren/dev/BCH-Texture-Editor/BCH-Texture-Editor.code-workspace
