@@ -22,3 +22,5 @@ Thumbs.db
 *.suo
 .idea/
 *.swp
+
+/home/jayaskren/dev/BCH-Texture-Editor/BCH-Texture-Editor.code-workspace
