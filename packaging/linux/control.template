@@ -1,0 +1,12 @@
+Package: bch-texture-editor
+Version: __VERSION__
+Section: graphics
+Priority: optional
+Architecture: amd64
+Maintainer: Jay Askren <jay.askren@gmail.com>
+Depends: libc6, libicu74 | libicu72 | libicu70 | libicu66, libx11-6, libsm6, libice6, libfontconfig1, libfreetype6
+Homepage: https://github.com/jayaskren/BCH-Texture-Editor
+Description: Texture editor for Nintendo 3DS Fire Emblem games
+ Open, preview, import, replace, and export textures from .bch, .lz, and
+ .arc files used by Fire Emblem Fates and Awakening. Self-contained build
+ powered by Avalonia and SixLabors.ImageSharp; no .NET runtime required.

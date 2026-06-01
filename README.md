@@ -4,73 +4,70 @@ A texture editor for Nintendo 3DS Fire Emblem games (Fates, Awakening). Lets you
 
 ---
 
-## Running on Windows
+## Download and run
 
-The Windows version is a .NET Framework 4.8 WinForms application.
+The editor is a single cross-platform Avalonia app that runs on **Windows, Linux, and macOS**. Each release ships a self-contained executable — **no .NET runtime needs to be installed**.
 
-### Prerequisites
+1. Go to the [Releases](../../releases) page and download the build for your platform:
+   - **Windows** — `BCH-Texture-Editor-win-x64.zip`
+   - **Linux** — `BCH-Texture-Editor-linux-x64.tar.gz`
+2. Unpack and launch:
+   - **Windows:** unzip and double-click `BCH.TextureTool.Avalonia.exe`.
+   - **Linux:**
+     ```bash
+     tar xzf BCH-Texture-Editor-linux-x64.tar.gz
+     ./BCH.TextureTool.Avalonia
+     ```
+     The desktop needs the usual X11/font libraries (`libx11-6`, `libsm6`, `libice6`, `libfontconfig1`, `libfreetype6`), which are present on any standard desktop install. Wayland works via XWayland.
 
-- **[.NET Framework 4.8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)** — already installed on Windows 10 and later. If you are on an older version of Windows, download and install it from Microsoft.
-
-### Download and run
-
-1. Download `BCH Texture Tool.exe` from the [Releases](../../releases) page.
-2. Double-click to run. No installation needed.
-
-### Building from source (Windows)
-
-1. Install [Visual Studio 2019 or later](https://visualstudio.microsoft.com/) with the **.NET desktop development** workload.
-2. Clone this repository and the [FE3D](https://github.com/VelouriasMoon/FE3D) repository as a sibling folder:
-   ```
-   dev/
-   ├── BCH-Texture-Editor/
-   └── FE3D/
-   ```
-3. Open `BCH Texture Tool.sln` in Visual Studio.
-4. Build → **Build Solution** (`Ctrl+Shift+B`).
-5. The output is `BCH Texture Tool/bin/Release/BCH Texture Tool.exe`.
+> A legacy .NET Framework 4.8 WinForms version also exists in the repo (`BCH Texture Tool/`) for Windows-only local builds, but the Avalonia app is the released, supported build on every platform.
 
 ---
 
-## Running on Linux (and macOS)
+## Building from source
 
-The cross-platform version uses the Avalonia UI framework and lives on the `avalonia-port` branch.
+The Avalonia app builds the same way on every platform — the FE3D libraries are vendored in `libs/`, so there is nothing else to clone.
 
 ### Prerequisites
 
-**Ubuntu / Debian:**
+Install the **.NET 8 SDK**:
+
 ```bash
+# Ubuntu / Debian
 sudo apt install dotnet-sdk-8.0
-```
 
-**Fedora / RHEL:**
-```bash
+# Fedora / RHEL
 sudo dnf install dotnet-sdk-8.0
-```
 
-**macOS (via Homebrew):**
-```bash
+# macOS (Homebrew)
 brew install dotnet
 ```
 
-Verify the install:
+On Windows, install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (or Visual Studio 2022 with the **.NET desktop development** workload). Verify with:
+
 ```bash
 dotnet --version   # should print 8.0.x
 ```
 
-### Running from source
+### Run
 
 ```bash
-# Clone the repo and switch to the Avalonia branch
 git clone https://github.com/jayaskren/BCH-Texture-Editor.git
 cd BCH-Texture-Editor
-git checkout avalonia-port
-
-# Run the app
 dotnet run --project BCH.TextureTool.Avalonia
 ```
 
-The window will open on your desktop. First launch takes ~10 seconds while it compiles; subsequent runs are faster.
+First launch takes ~10 seconds while it compiles; subsequent runs are faster.
+
+### Publish a self-contained executable
+
+```bash
+# Windows
+dotnet publish BCH.TextureTool.Avalonia -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+
+# Linux
+dotnet publish BCH.TextureTool.Avalonia -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+```
 
 ---
 

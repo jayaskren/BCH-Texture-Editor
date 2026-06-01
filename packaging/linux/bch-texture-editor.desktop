@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=BCH Texture Editor
+Comment=Edit Nintendo 3DS Fire Emblem textures
+Exec=bch-texture-editor
+Icon=bch-texture-editor
+Terminal=false
+Categories=Graphics;Utility;
