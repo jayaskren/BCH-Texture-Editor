@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BCH.TextureCore\BCH.TextureCore.csproj" />
+    <!-- Direct reference needed: the tests touch H3D / H3DTexture types directly,
+         and the core's FE3D references are private (HintPath, not flowed transitively). -->
+    <Reference Include="FE3D.Graphics">
+      <HintPath>..\libs\FE3D.Graphics.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- A real Fire Emblem ARC, copied next to the test binary as fixture data. -->
+    <Content Include="..\files\Arc File Samples\Sample_st.arc">
+      <Link>TestData\Sample_st.arc</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
