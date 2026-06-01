@@ -69,17 +69,43 @@ namespace BCH.TextureCore
                 var newBch = new H3D();
                 newBch.Textures.Add(texture);
 
-                string fileName = $"{newBch.Textures[0].Name}.bch.lz";
-                newBch.Textures[0].Name = "tmp";
+                // newBch shares the texture reference with the live session, so the
+                // name must be restored after saving — otherwise saving an .arc renames
+                // every open texture to "tmp" and a second save corrupts the archive.
+                string originalName = texture.Name;
+                string fileName = $"{originalName}.bch.lz";
+                texture.Name = "tmp";
                 newBch.ConverterVersion = 44139;
                 newBch.BackwardCompatibility = 34;
                 newBch.ForwardCompatibility = 35;
 
-                arcFiles.Add(FEIO.LZ13Compress(H3D.Save(newBch)));
+                arcFiles.Add(CompressArcEntry(H3D.Save(newBch)));
                 arcNames.Add(fileName);
+
+                texture.Name = originalName;
             }
 
             return FEArcOld.CreateArc(arcFiles, arcNames.ToArray());
+        }
+
+        // Builds an ARC LZ entry as a 0x13-wrapped LZ11 stream:
+        // [0x13 + 24-bit size][full LZ11 file]. OpenArc reads this back via
+        // LZ11Decompress(Skip(4)). We must NOT use FEIO.LZ13Compress here: FE3D's
+        // LZ13 compressor produces truncated/corrupt output for data containing long
+        // runs of repeated bytes (e.g. large transparent regions in portraits), which
+        // made saved .arc files unreadable. The LZ11 compressor handles such data
+        // correctly, and prepending the 0x13 header yields the exact format the game
+        // (and OpenArc) expects.
+        private static byte[] CompressArcEntry(byte[] bch)
+        {
+            byte[] lz11 = FEIO.LZ11Compress(bch);   // [0x11 + 24-bit size][body]
+            byte[] entry = new byte[lz11.Length + 4];
+            entry[0] = 0x13;
+            entry[1] = lz11[1];                     // copy the 24-bit decompressed size
+            entry[2] = lz11[2];
+            entry[3] = lz11[3];
+            System.Array.Copy(lz11, 0, entry, 4, lz11.Length);
+            return entry;
         }
     }
 }
