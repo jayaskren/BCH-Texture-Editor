@@ -69,11 +69,13 @@ namespace BCH.TextureCore
                         int y = (SwizzleLUT[px] - x) >> 3;
                         int iOffs = (tX + x + (tY + y) * w) * 4;
 
-                        // SPICA RGBA8 stores [A, R, G, B] per pixel.
+                        // PICA200 RGBA8 raw byte order is [A, B, G, R] (this matches
+                        // SPICA's own codec). Getting this wrong swaps R and B, which
+                        // looks fine in this tool's preview but flips colors in-game.
                         output[oOffs + 0] = pixels[iOffs + 3]; // A
-                        output[oOffs + 1] = pixels[iOffs + 0]; // R
+                        output[oOffs + 1] = pixels[iOffs + 2]; // B
                         output[oOffs + 2] = pixels[iOffs + 1]; // G
-                        output[oOffs + 3] = pixels[iOffs + 2]; // B
+                        output[oOffs + 3] = pixels[iOffs + 0]; // R
                         oOffs += 4;
                     }
                 }
@@ -101,10 +103,10 @@ namespace BCH.TextureCore
                         int y = (SwizzleLUT[px] - x) >> 3;
                         int oOffs = (tX + x + (height - 1 - (tY + y)) * width) * 4;
 
-                        // Stored [A, R, G, B] → output [R, G, B, A] (Rgba32).
-                        pixels[oOffs + 0] = rawBuffer[iOffs + 1]; // R
+                        // Raw [A, B, G, R] → output [R, G, B, A] (Rgba32).
+                        pixels[oOffs + 0] = rawBuffer[iOffs + 3]; // R
                         pixels[oOffs + 1] = rawBuffer[iOffs + 2]; // G
-                        pixels[oOffs + 2] = rawBuffer[iOffs + 3]; // B
+                        pixels[oOffs + 2] = rawBuffer[iOffs + 1]; // B
                         pixels[oOffs + 3] = rawBuffer[iOffs + 0]; // A
                         iOffs += 4;
                     }
