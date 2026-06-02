@@ -134,10 +134,18 @@ public partial class MainWindow : Window
         Reset();
         _saveExt = ext;
 
-        if (ext == ".arc")
-            _session = FileOperations.OpenArc(bytes, file.Name);
-        else
-            _session = FileOperations.OpenFile(bytes, file.Name);
+        try
+        {
+            if (ext == ".arc")
+                _session = FileOperations.OpenArc(bytes, file.Name);
+            else
+                _session = FileOperations.OpenFile(bytes, file.Name);
+        }
+        catch (Exception ex)
+        {
+            await ShowError($"Could not open '{file.Name}'. The file may be corrupt or in an unsupported format.\n\n{ex.Message}");
+            return;
+        }
 
         if (_session == null)
         {

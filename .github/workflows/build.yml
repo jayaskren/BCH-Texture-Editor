@@ -1,0 +1,173 @@
+name: build-and-release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read   # the release job elevates to write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Avalonia net8.0 cross-platform build. Builds from committed libs/*.dll.
+  # Targets the .csproj directly (NEVER "BCH Texture Tool.sln" — it contains
+  # the unbuildable .NET Framework WinForms project).
+  # --------------------------------------------------------------------------
+  build-avalonia:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout (includes committed libs/*.dll and packaging assets)
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Derive version
+        id: ver
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-ci.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore
+        run: dotnet restore "BCH.TextureTool.Avalonia/BCH.TextureTool.Avalonia.csproj" -r ${{ matrix.rid }}
+
+      - name: Publish self-contained single-file (${{ matrix.rid }})
+        shell: bash
+        run: |
+          dotnet publish "BCH.TextureTool.Avalonia/BCH.TextureTool.Avalonia.csproj" \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            --no-restore \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:PublishTrimmed=false \
+            -p:DebugType=none \
+            -p:DebugSymbols=false \
+            -p:Version=${{ steps.ver.outputs.version }} \
+            -o "publish/${{ matrix.rid }}"
+
+      # Package — Windows: zip the single-file exe (drop stray native .pdb).
+      - name: Package zip (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Remove-Item "publish/${{ matrix.rid }}/*.pdb" -ErrorAction SilentlyContinue
+          Compress-Archive -Path "publish/${{ matrix.rid }}/*" -DestinationPath "BCH-Texture-Editor-${{ matrix.rid }}.zip"
+
+      # Package — Linux: tar.gz preserves the exec bit (the artifact zip does not).
+      - name: Package tarball (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          rm -f publish/${{ matrix.rid }}/*.pdb
+          chmod +x "publish/${{ matrix.rid }}/BCH.TextureTool.Avalonia"
+          tar -C "publish/${{ matrix.rid }}" -czf "BCH-Texture-Editor-${{ matrix.rid }}.tar.gz" .
+
+      - name: Upload zip artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BCH-Texture-Editor-${{ matrix.rid }}.zip
+          path: BCH-Texture-Editor-${{ matrix.rid }}.zip
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload tarball artifact (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BCH-Texture-Editor-${{ matrix.rid }}.tar.gz
+          path: BCH-Texture-Editor-${{ matrix.rid }}.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+      # Package — Linux: Debian .deb. Installs the self-contained app under /opt,
+      # with a /usr/bin launcher, a desktop entry, and the hicolor icon.
+      # dpkg-deb is preinstalled on ubuntu-latest (no apt install needed).
+      - name: Package .deb (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          # Debian versions can't contain '-' as anything but the revision separator;
+          # sanitize the CI pre-release form (0.0.0-ci.N -> 0.0.0~ci.N).
+          DEB_VERSION="$(echo '${{ steps.ver.outputs.version }}' | sed 's/-/~/g')"
+          PKGROOT="pkgroot"
+          rm -rf "$PKGROOT"
+          mkdir -p "$PKGROOT/opt/bch-texture-editor" \
+                   "$PKGROOT/usr/bin" \
+                   "$PKGROOT/usr/share/applications" \
+                   "$PKGROOT/usr/share/icons/hicolor/256x256/apps" \
+                   "$PKGROOT/DEBIAN"
+          cp -r "publish/${{ matrix.rid }}/." "$PKGROOT/opt/bch-texture-editor/"
+          install -m0755 packaging/linux/bch-texture-editor          "$PKGROOT/usr/bin/bch-texture-editor"
+          install -m0644 packaging/linux/bch-texture-editor.desktop  "$PKGROOT/usr/share/applications/bch-texture-editor.desktop"
+          install -m0644 packaging/linux/bch-texture-editor.png      "$PKGROOT/usr/share/icons/hicolor/256x256/apps/bch-texture-editor.png"
+          sed "s/__VERSION__/${DEB_VERSION}/" packaging/linux/control.template > "$PKGROOT/DEBIAN/control"
+          dpkg-deb --root-owner-group --build "$PKGROOT" "bch-texture-editor_${DEB_VERSION}_amd64.deb"
+
+      - name: Upload .deb artifact (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bch-texture-editor-deb
+          path: '*.deb'
+          if-no-files-found: error
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
+  # Release — only on v* tag push. Gathers all artifacts, attaches to a Release.
+  # --------------------------------------------------------------------------
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-avalonia]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/BCH-Texture-Editor-win-x64.zip
+            dist/BCH-Texture-Editor-linux-x64.tar.gz
+            dist/bch-texture-editor_*_amd64.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

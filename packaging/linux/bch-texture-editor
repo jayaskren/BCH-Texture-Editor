@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /opt/bch-texture-editor/BCH.TextureTool.Avalonia "$@"
